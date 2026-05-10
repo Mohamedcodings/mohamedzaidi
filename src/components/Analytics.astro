@@ -1,0 +1,17 @@
+---
+const token = import.meta.env.PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
+const shouldLoadAnalytics =
+  import.meta.env.PROD && typeof token === "string" && token.trim().length > 0;
+const beaconConfig = JSON.stringify({ token: token?.trim() });
+---
+
+{
+  shouldLoadAnalytics && (
+    <script
+      is:inline
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon={beaconConfig}
+    />
+  )
+}

@@ -1,0 +1,79 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { SITE } from "@/site.config";
+---
+
+<BaseLayout title={`Search | ${SITE.name}`} description="Search posts from Mohamed Zaidi.">
+  <section class="page-copy" aria-labelledby="search-title">
+    <p class="eyebrow">Search</p>
+    <h1 id="search-title">Find a note</h1>
+    <p>Search titles, descriptions, and tags.</p>
+  </section>
+
+  <section class="search-panel" aria-label="Post search">
+    <label for="search-input">Search posts</label>
+    <input id="search-input" type="search" autocomplete="off" placeholder="Type to search..." />
+    <ol id="search-results" class="post-list search-results"></ol>
+  </section>
+
+  <script>
+    type SearchPost = {
+      title: string;
+      description: string;
+      date: string;
+      readingTime: string;
+      tags: string[];
+      url: string;
+    };
+
+    const input = document.getElementById("search-input");
+    const results = document.getElementById("search-results");
+
+    const formatter = new Intl.DateTimeFormat("en", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+
+    const posts = (await fetch("/search-index.json").then((response) =>
+      response.json()
+    )) as SearchPost[];
+
+    const render = (query = "") => {
+      if (!(results instanceof HTMLOListElement)) return;
+
+      const normalized = query.trim().toLowerCase();
+      const filtered = normalized
+        ? posts.filter((post: SearchPost) =>
+            [post.title, post.description, ...(post.tags ?? [])]
+              .join(" ")
+              .toLowerCase()
+              .includes(normalized)
+          )
+        : posts;
+
+      results.innerHTML = filtered
+        .map(
+          (post: SearchPost) => `
+          <li>
+            <a href="${post.url}">
+              <span class="post-title">${post.title}</span>
+              <span class="post-meta">
+                <time datetime="${post.date}">${formatter.format(new Date(post.date))}</time>
+                <span aria-hidden="true">/</span>
+                <span>${post.readingTime}</span>
+              </span>
+              <span class="post-description">${post.description}</span>
+            </a>
+          </li>
+        `
+        )
+        .join("");
+    };
+
+    if (input instanceof HTMLInputElement) {
+      render();
+      input.addEventListener("input", () => render(input.value));
+    }
+  </script>
+</BaseLayout>

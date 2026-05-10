@@ -1,0 +1,34 @@
+---
+import type { BlogPost } from "@/utils/posts";
+import { formatDate, getPostSlug, getReadingTime } from "@/utils/posts";
+
+interface Props {
+  posts: BlogPost[];
+}
+
+const { posts } = Astro.props;
+---
+
+{
+  posts.length > 0 ? (
+    <ol class="post-list">
+      {posts.map((post) => (
+        <li>
+          <a href={`/posts/${getPostSlug(post)}`}>
+            <span class="post-title">{post.data.title}</span>
+            <span class="post-meta">
+              <time datetime={post.data.pubDate.toISOString()}>
+                {formatDate(post.data.pubDate)}
+              </time>
+              <span aria-hidden="true">/</span>
+              <span>{post.data.readingTime ?? getReadingTime(post.body)}</span>
+            </span>
+            <span class="post-description">{post.data.description}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p class="empty-state">No posts yet. New notes will appear here soon.</p>
+  )
+}

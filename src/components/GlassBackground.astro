@@ -1,0 +1,253 @@
+<div class="ambient-shell" aria-hidden="true">
+  <div class="cursor-wash"></div>
+  <div class="neural-field">
+    <canvas class="neural-canvas"></canvas>
+  </div>
+</div>
+
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<div class="top-object-shell" aria-hidden="true">
+  <div class="compute-field">
+    <div class="gpu-card">
+      <span class="gpu-label">GPU</span>
+      <span class="gpu-spec">VRAM</span>
+      <span class="gpu-fan"></span>
+      <span class="gpu-core"></span>
+      <span class="gpu-memory memory-one"></span>
+      <span class="gpu-memory memory-two"></span>
+      <span class="gpu-memory memory-three"></span>
+      <span class="gpu-trace trace-one"></span>
+      <span class="gpu-trace trace-two"></span>
+      <span class="gpu-trace trace-three"></span>
+    </div>
+  </div>
+  <div class="robot-field">
+    <div class="robot-head">
+      <span class="robot-antenna"></span>
+      <span class="robot-eye eye-one"></span>
+      <span class="robot-eye eye-two"></span>
+      <span class="robot-mouth"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const neuralField = document.querySelector<HTMLElement>(".neural-field");
+  const neuralCanvas = document.querySelector<HTMLCanvasElement>(".neural-canvas");
+  const neuralContext = neuralCanvas?.getContext("2d");
+
+  let targetX = 76;
+  let targetY = 28;
+  let currentX = targetX;
+  let currentY = targetY;
+  let canvasWidth = 0;
+  let canvasHeight = 0;
+  let pixelRatio = 1;
+  let nodes: Array<{
+    x: number;
+    y: number;
+    radius: number;
+    hot: boolean;
+    phase: number;
+  }> = [];
+  let links: Array<[number, number]> = [];
+
+  const setVars = () => {
+    root.style.setProperty("--cursor-x", `${currentX}%`);
+    root.style.setProperty("--cursor-y", `${currentY}%`);
+    root.style.setProperty("--drift-x", `${(currentX - 50) / 50}`);
+    root.style.setProperty("--drift-y", `${(currentY - 50) / 50}`);
+  };
+
+  const setScrollProgress = () => {
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+    root.style.setProperty("--scroll-progress", `${Math.min(1, Math.max(0, progress))}`);
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    targetX = (event.clientX / window.innerWidth) * 100;
+    targetY = (event.clientY / window.innerHeight) * 100;
+  };
+
+  const neuralSeed = (index: number) => {
+    const value = Math.sin(index * 91.7) * 10000;
+    return value - Math.floor(value);
+  };
+
+  const buildNetwork = () => {
+    if (!neuralField || !neuralCanvas || !neuralContext) return;
+
+    const rect = neuralField.getBoundingClientRect();
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    canvasWidth = Math.max(1, rect.width);
+    canvasHeight = Math.max(1, rect.height);
+    neuralCanvas.width = Math.round(canvasWidth * pixelRatio);
+    neuralCanvas.height = Math.round(canvasHeight * pixelRatio);
+    neuralContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+    const columns = Math.max(9, Math.ceil(canvasWidth / 150));
+    const rows = 3;
+    nodes = [];
+    links = [];
+
+    for (let column = 0; column < columns; column += 1) {
+      for (let row = 0; row < rows; row += 1) {
+        const index = column * rows + row;
+        const x = (column / (columns - 1)) * canvasWidth;
+        const wave = Math.sin(column * 0.85 + row * 1.55) * canvasHeight * 0.035;
+        const y =
+          canvasHeight * (0.28 + row * 0.2) +
+          wave +
+          (neuralSeed(index) - 0.5) * canvasHeight * 0.055;
+
+        nodes.push({
+          x,
+          y,
+          radius: 2.2 + neuralSeed(index + 40) * 2.4,
+          hot: (column + row) % 7 === 0,
+          phase: neuralSeed(index + 80) * Math.PI * 2
+        });
+      }
+    }
+
+    for (let column = 0; column < columns - 1; column += 1) {
+      for (let row = 0; row < rows; row += 1) {
+        const current = column * rows + row;
+        links.push([current, current + rows]);
+
+        if (row < rows - 1 && neuralSeed(current + 7) > 0.52) {
+          links.push([current, current + rows + 1]);
+        }
+
+        if (row > 0 && neuralSeed(current + 17) > 0.68) {
+          links.push([current, current + rows - 1]);
+        }
+      }
+    }
+  };
+
+  const bendPoint = (x: number, y: number, strength = 1) => {
+    const pointerX = (currentX / 100) * window.innerWidth;
+    const pointerY = (currentY / 100) * window.innerHeight;
+    const fieldRect = neuralField?.getBoundingClientRect();
+
+    if (!fieldRect) return { x, y, influence: 0 };
+
+    const localX = pointerX - fieldRect.left;
+    const localY = pointerY - fieldRect.top;
+    const dx = x - localX;
+    const dy = y - localY;
+    const distance = Math.hypot(dx, dy);
+    const radius = Math.min(220, Math.max(125, canvasWidth * 0.12));
+    const influence = Math.max(0, 1 - distance / radius);
+    const eased = influence * influence * (3 - 2 * influence);
+    const angle = Math.atan2(dy, dx);
+    const pull = Math.sin((x / canvasWidth) * Math.PI * 2 + performance.now() * 0.00055) * 2.5;
+    const displacement = eased * 12 * strength;
+
+    return {
+      x: x + Math.cos(angle) * displacement + eased * pull,
+      y: y + Math.sin(angle) * displacement - eased * 6 * strength,
+      influence: eased
+    };
+  };
+
+  const drawNeural = (time = 0) => {
+    if (!neuralContext || !canvasWidth || !canvasHeight) return;
+
+    neuralContext.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    const background = neuralContext.createLinearGradient(0, 0, canvasWidth, 0);
+    background.addColorStop(0, "rgba(125, 223, 199, 0)");
+    background.addColorStop(0.5, "rgba(38, 64, 59, 0.045)");
+    background.addColorStop(1, "rgba(52, 50, 43, 0)");
+    neuralContext.fillStyle = background;
+    neuralContext.fillRect(0, canvasHeight * 0.08, canvasWidth, canvasHeight * 0.72);
+
+    for (const [fromIndex, toIndex] of links) {
+      const from = nodes[fromIndex];
+      const to = nodes[toIndex];
+      const bentFrom = bendPoint(from.x, from.y, 0.34);
+      const bentTo = bendPoint(to.x, to.y, 0.34);
+      const influence = Math.max(bentFrom.influence, bentTo.influence);
+      const midX = (bentFrom.x + bentTo.x) / 2;
+      const midY = (bentFrom.y + bentTo.y) / 2;
+      const normal = Math.atan2(bentTo.y - bentFrom.y, bentTo.x - bentFrom.x) + Math.PI / 2;
+      const controlBend = influence * 18;
+      const controlX = midX + Math.cos(normal) * controlBend;
+      const controlY = midY + Math.sin(normal) * controlBend;
+
+      neuralContext.beginPath();
+      neuralContext.moveTo(bentFrom.x, bentFrom.y);
+      neuralContext.quadraticCurveTo(controlX, controlY, bentTo.x, bentTo.y);
+
+      const gradient = neuralContext.createLinearGradient(bentFrom.x, bentFrom.y, bentTo.x, bentTo.y);
+      gradient.addColorStop(0, "rgba(50, 73, 68, 0.035)");
+      gradient.addColorStop(0.5, `rgba(86, 121, 112, ${0.12 + influence * 0.13})`);
+      gradient.addColorStop(1, "rgba(86, 76, 58, 0.04)");
+      neuralContext.strokeStyle = gradient;
+      neuralContext.lineWidth = 0.85 + influence * 0.65;
+      neuralContext.stroke();
+
+      if (influence > 0.22 && !reduceMotion.matches) {
+        const pulse = (Math.sin(time * 0.0022 + from.phase + to.phase) + 1) / 2;
+        const pulseX = bentFrom.x + (bentTo.x - bentFrom.x) * pulse;
+        const pulseY = bentFrom.y + (bentTo.y - bentFrom.y) * pulse;
+
+        neuralContext.beginPath();
+        neuralContext.arc(pulseX, pulseY, 1 + influence * 1.1, 0, Math.PI * 2);
+        neuralContext.fillStyle = `rgba(88, 77, 55, ${0.045 + influence * 0.08})`;
+        neuralContext.fill();
+      }
+    }
+
+    for (const node of nodes) {
+      const bent = bendPoint(node.x, node.y, 0.42);
+      const glow = node.hot ? 0.15 : 0.08;
+      const radius = node.radius + bent.influence * 1.2;
+
+      neuralContext.beginPath();
+      neuralContext.arc(bent.x, bent.y, radius + 5 + bent.influence * 4, 0, Math.PI * 2);
+      neuralContext.fillStyle = `rgba(71, 103, 95, ${glow * (0.3 + bent.influence)})`;
+      neuralContext.fill();
+
+      neuralContext.beginPath();
+      neuralContext.arc(bent.x, bent.y, radius, 0, Math.PI * 2);
+      neuralContext.fillStyle = node.hot
+        ? `rgba(79, 118, 108, ${0.18 + bent.influence * 0.1})`
+        : `rgba(17, 28, 27, ${0.74 - bent.influence * 0.08})`;
+      neuralContext.fill();
+      neuralContext.strokeStyle = `rgba(126, 146, 137, ${0.13 + bent.influence * 0.1})`;
+      neuralContext.lineWidth = 0.8;
+      neuralContext.stroke();
+    }
+  };
+
+  const render = () => {
+    currentX += (targetX - currentX) * 0.055;
+    currentY += (targetY - currentY) * 0.055;
+    setVars();
+    drawNeural(performance.now());
+
+    if (!reduceMotion.matches) {
+      requestAnimationFrame(render);
+    }
+  };
+
+  setVars();
+  setScrollProgress();
+  buildNetwork();
+  drawNeural();
+
+  window.addEventListener("pointermove", onPointerMove, { passive: true });
+  window.addEventListener("scroll", setScrollProgress, { passive: true });
+  window.addEventListener("resize", buildNetwork, { passive: true });
+
+  if (!reduceMotion.matches) {
+    render();
+  }
+</script>

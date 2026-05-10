@@ -1,0 +1,23 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostList from "@/components/PostList.astro";
+import { SITE } from "@/site.config";
+import { getSortedPosts } from "@/utils/posts";
+
+const posts = await getSortedPosts();
+---
+
+<BaseLayout title={`Posts | ${SITE.name}`} description="Writing and notes from Mohamed Zaidi.">
+  <section class="page-copy" aria-labelledby="posts-title">
+    <p class="eyebrow">Archive</p>
+    <h1 id="posts-title">Posts</h1>
+    <p>
+      Notes, essays, and working thoughts. Short when short is enough, longer
+      when the subject deserves room.
+    </p>
+  </section>
+
+  <section class="section-block" aria-label="All posts">
+    <PostList posts={posts} />
+  </section>
+</BaseLayout>

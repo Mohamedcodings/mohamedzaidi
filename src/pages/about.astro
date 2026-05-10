@@ -1,0 +1,30 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import SocialLinks from "@/components/SocialLinks.astro";
+import { SITE } from "@/site.config";
+---
+
+<BaseLayout title={`About | ${SITE.name}`} description="About Mohamed Zaidi and this personal site.">
+  <article class="page-copy">
+    <p class="eyebrow">About</p>
+    <h1>Building with taste, calm, and momentum.</h1>
+    <p>
+      I&rsquo;m Mohamed Zaidi. This site is a small public workspace for what I am
+      building, learning, and refining across software, product craft, and the
+      way good tools feel in use.
+    </p>
+    <p>
+      The goal is intentionally simple: fewer pages, better signal, and writing
+      that makes the work easier to understand.
+    </p>
+
+    <h2>Current Focus</h2>
+    <ul>
+      <li>Shipping polished web experiences with a strong sense of restraint.</li>
+      <li>Writing notes that turn messy learning into something reusable.</li>
+      <li>Exploring tasteful motion and interaction without making the page noisy.</li>
+    </ul>
+
+    <SocialLinks />
+  </article>
+</BaseLayout>

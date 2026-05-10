@@ -1,0 +1,22 @@
+---
+import { SITE } from "@/site.config";
+
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+---
+
+<ul class:list={["social-links", { compact }]}>
+  {
+    SITE.socials.map((link) => (
+      <li>
+        <a href={link.href} rel={link.href.startsWith("http") ? "me noopener noreferrer" : undefined}>
+          <span>{link.label}</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>

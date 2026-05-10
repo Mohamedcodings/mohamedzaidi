@@ -1,0 +1,46 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { render } from "astro:content";
+import { SITE } from "@/site.config";
+import {
+  formatDate,
+  getPostSlug,
+  getReadingTime,
+  getSortedPosts,
+  type BlogPost
+} from "@/utils/posts";
+
+export async function getStaticPaths() {
+  const posts = await getSortedPosts();
+
+  return posts.map((post) => ({
+    params: { slug: getPostSlug(post) },
+    props: { post }
+  }));
+}
+
+interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<BaseLayout title={`${post.data.title} | ${SITE.name}`} description={post.data.description}>
+  <article class="post-page">
+    <a class="back-link" href="/posts">Posts</a>
+    <header class="post-header">
+      <p class="post-kicker">
+        <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+        <span aria-hidden="true">/</span>
+        <span>{post.data.readingTime ?? getReadingTime(post.body)}</span>
+      </p>
+      <h1>{post.data.title}</h1>
+      <p>{post.data.description}</p>
+    </header>
+    <div class="post-body">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
