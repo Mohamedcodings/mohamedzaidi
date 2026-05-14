@@ -95,25 +95,33 @@
     neuralCanvas.height = Math.round(canvasHeight * pixelRatio);
     neuralContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-    const columns = Math.max(8, Math.ceil(canvasWidth / 175));
-    const rows = 3;
+    const columns = Math.max(7, Math.ceil(canvasWidth / 170));
+    const rows = Math.max(6, Math.ceil(canvasHeight / 150));
+    const xPadding = Math.min(92, canvasWidth * 0.06);
+    const yPadding = Math.min(86, canvasHeight * 0.08);
+    const usableWidth = Math.max(1, canvasWidth - xPadding * 2);
+    const usableHeight = Math.max(1, canvasHeight - yPadding * 2);
     nodes = [];
     links = [];
 
     for (let column = 0; column < columns; column += 1) {
       for (let row = 0; row < rows; row += 1) {
         const index = column * rows + row;
-        const x = (column / (columns - 1)) * canvasWidth;
-        const wave = Math.sin(column * 0.85 + row * 1.55) * canvasHeight * 0.035;
+        const x =
+          xPadding +
+          (column / (columns - 1)) * usableWidth +
+          (neuralSeed(index + 140) - 0.5) * canvasWidth * 0.035;
+        const wave = Math.sin(column * 0.85 + row * 1.55) * canvasHeight * 0.018;
         const y =
-          canvasHeight * (0.32 + row * 0.2) +
+          yPadding +
+          (row / (rows - 1)) * usableHeight +
           wave +
-          (neuralSeed(index) - 0.5) * canvasHeight * 0.045;
+          (neuralSeed(index) - 0.5) * canvasHeight * 0.032;
 
         nodes.push({
           x,
           y,
-          radius: 1.8 + neuralSeed(index + 40) * 1.8,
+          radius: 2 + neuralSeed(index + 40) * 2,
           hot: (column + row) % 7 === 0,
           phase: neuralSeed(index + 80) * Math.PI * 2
         });
@@ -169,10 +177,10 @@
 
     const background = neuralContext.createLinearGradient(0, 0, canvasWidth, 0);
     background.addColorStop(0, "rgba(125, 223, 199, 0)");
-    background.addColorStop(0.5, "rgba(38, 64, 59, 0.04)");
+    background.addColorStop(0.5, "rgba(38, 64, 59, 0.07)");
     background.addColorStop(1, "rgba(52, 50, 43, 0)");
     neuralContext.fillStyle = background;
-    neuralContext.fillRect(0, canvasHeight * 0.08, canvasWidth, canvasHeight * 0.72);
+    neuralContext.fillRect(0, 0, canvasWidth, canvasHeight);
 
     for (const [fromIndex, toIndex] of links) {
       const from = nodes[fromIndex];
@@ -192,11 +200,11 @@
       neuralContext.quadraticCurveTo(controlX, controlY, bentTo.x, bentTo.y);
 
       const gradient = neuralContext.createLinearGradient(bentFrom.x, bentFrom.y, bentTo.x, bentTo.y);
-      gradient.addColorStop(0, "rgba(50, 73, 68, 0.032)");
-      gradient.addColorStop(0.5, `rgba(86, 121, 112, ${0.11 + influence * 0.08})`);
-      gradient.addColorStop(1, "rgba(86, 76, 58, 0.03)");
+      gradient.addColorStop(0, "rgba(50, 73, 68, 0.06)");
+      gradient.addColorStop(0.5, `rgba(103, 151, 138, ${0.16 + influence * 0.1})`);
+      gradient.addColorStop(1, "rgba(86, 76, 58, 0.052)");
       neuralContext.strokeStyle = gradient;
-      neuralContext.lineWidth = 0.78 + influence * 0.5;
+      neuralContext.lineWidth = 0.92 + influence * 0.62;
       neuralContext.stroke();
 
       if (influence > 0.3 && !reduceMotion.matches) {
@@ -206,29 +214,29 @@
 
         neuralContext.beginPath();
         neuralContext.arc(pulseX, pulseY, 1 + influence * 1.1, 0, Math.PI * 2);
-        neuralContext.fillStyle = `rgba(88, 77, 55, ${0.028 + influence * 0.05})`;
+        neuralContext.fillStyle = `rgba(125, 223, 199, ${0.046 + influence * 0.06})`;
         neuralContext.fill();
       }
     }
 
     for (const node of nodes) {
       const bent = bendPoint(node.x, node.y, 0.42);
-      const glow = node.hot ? 0.15 : 0.08;
+      const glow = node.hot ? 0.2 : 0.12;
       const radius = node.radius + bent.influence * 0.8;
 
       neuralContext.beginPath();
       neuralContext.arc(bent.x, bent.y, radius + 5 + bent.influence * 4, 0, Math.PI * 2);
-      neuralContext.fillStyle = `rgba(71, 103, 95, ${glow * (0.34 + bent.influence)})`;
+      neuralContext.fillStyle = `rgba(88, 132, 121, ${glow * (0.42 + bent.influence)})`;
       neuralContext.fill();
 
       neuralContext.beginPath();
       neuralContext.arc(bent.x, bent.y, radius, 0, Math.PI * 2);
       neuralContext.fillStyle = node.hot
-        ? `rgba(79, 118, 108, ${0.18 + bent.influence * 0.08})`
-        : `rgba(17, 28, 27, ${0.7 - bent.influence * 0.06})`;
+        ? `rgba(112, 178, 160, ${0.24 + bent.influence * 0.1})`
+        : `rgba(22, 40, 37, ${0.82 - bent.influence * 0.08})`;
       neuralContext.fill();
-      neuralContext.strokeStyle = `rgba(126, 146, 137, ${0.13 + bent.influence * 0.08})`;
-      neuralContext.lineWidth = 0.75;
+      neuralContext.strokeStyle = `rgba(147, 177, 166, ${0.18 + bent.influence * 0.1})`;
+      neuralContext.lineWidth = 0.82;
       neuralContext.stroke();
     }
   };
