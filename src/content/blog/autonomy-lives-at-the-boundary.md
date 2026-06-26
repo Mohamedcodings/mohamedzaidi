@@ -18,7 +18,9 @@ Querying a database. Installing a package. Calling an external API. Reading serv
 
 These actions should not all be treated the same.
 
-![Agent autonomy permission layers](/images/agent-autonomy-boundary.png)
+<figure class="wide-figure">
+  <img src="/images/agent-autonomy-boundary.png" alt="Agent autonomy permission layers" />
+</figure>
 
 The naive version is binary:
 
