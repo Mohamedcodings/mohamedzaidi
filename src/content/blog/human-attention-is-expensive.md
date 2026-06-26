@@ -1,45 +1,45 @@
 ---
-title: human attention is expensive
-description: ai made text easier to generate, but it did not make attention easier to give.
+title: Human Attention Is Expensive
+description: AI made text easier to generate, but it did not make attention easier to give.
 pubDate: 2026-06-12
 tags: ["ai", "communication", "work"]
 draft: false
 ---
 
-human attention is expensive.
+Human attention is expensive.
 
-ai made it easier to generate text: summaries, documents, plans, reviews, explanations...
+AI made it easier to generate text: summaries, documents, plans, reviews, explanations...
 
-but it did not make reading cheaper.
+But it did not make reading cheaper.
 
-people still need time to understand what matters, filter what does not, and decide what to do next.
+People still need time to understand what matters, filter what does not, and decide what to do next.
 
-that is the part i want to remember.
+That is the part I want to remember.
 
-## more text is not more value
+## More Text Is Not More Value
 
-when text is easy to generate, it is easy to send too much.
+When text is easy to generate, it is easy to send too much.
 
-a long message can look useful because it has structure. a generated document can look complete because it sounds confident.
+A long message can look useful because it has structure. A generated document can look complete because it sounds confident.
 
-but if the sender does not filter it, the reader has to.
+But if the sender does not filter it, the reader has to.
 
-the effort does not disappear.
+The effort does not disappear.
 
-it moves to someone else.
+It moves to someone else.
 
-## good communication gives direction
+## Good Communication Gives Direction
 
-before asking someone to read something, the question should be simple:
+Before asking someone to read something, the question should be simple:
 
-"am i making this easier for them?"
+"Am I making this easier for them?"
 
-that might mean writing less.
+That might mean writing less.
 
-it might mean adding a short summary.
+It might mean adding a short summary.
 
-it might mean highlighting the only part that needs attention.
+It might mean highlighting the only part that needs attention.
 
-the goal is not to produce more text.
+The goal is not to produce more text.
 
-the goal is to lower the cost of understanding.
+The goal is to lower the cost of understanding.
