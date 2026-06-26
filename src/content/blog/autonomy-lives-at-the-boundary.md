@@ -1,7 +1,7 @@
 ---
 title: Autonomy Lives at the Boundary
 description: Agents become more useful when we can decide which actions are safe to run, which need review, and which should stay blocked.
-pubDate: 2026-06-26
+pubDate: 2026-06-24
 tags: ["ai", "agents", "security"]
 draft: false
 ---
